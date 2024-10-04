@@ -1,0 +1,56 @@
+from PIL import Image, ImageDraw, ImageFont
+from fpdf import FPDF
+import pandas as pd
+
+# Load the Excel sheet
+data = pd.read_excel('C:/Users/DELL-7420/OneDrive/Documents/Real_certificate sheet(1).xlsx')
+
+# Initialize PDF
+pdf = FPDF()
+
+# Define paths
+certificate_template_path = 'C:/Users/DELL-7420/OneDrive/Pictures/Saved Pictures/WhatsApp Image 2024-08-31 at 17.16.47_203f7198.jpg'
+
+# Loop through each row in the Excel sheet
+for index, row in data.iterrows():
+    name = row['Name']
+    college = row['College Name']
+    photo_path = row['Photo']
+
+    try:
+        # Load the certificate template
+        cert_img = Image.open(certificate_template_path)
+        draw = ImageDraw.Draw(cert_img)
+        
+        # Set font
+        font = ImageFont.truetype("arial.ttf", 28)
+        
+        # Add name and college to the certificate
+        draw.text((668, 1085), name, font=font, fill='black')
+        draw.text((430, 1145), college, font=font, fill='black')
+        
+        # Load the photo of the candidate
+        photo_img = Image.open(photo_path)
+        
+        # Resize the photo to fit into the designated area
+        photo_img = photo_img.resize((210, 270))
+        
+        # Paste the photo onto the certificate
+        cert_img.paste(photo_img, (668, 735))
+        
+        # Save each certificate as a temporary image file
+        cert_img_path = f"temp_certificate_{index}.jpg"
+        cert_img.save(cert_img_path)
+
+        # Add a page to the PDF and insert the certificate image
+        pdf.add_page()
+        pdf.image(cert_img_path, x=0, y=0, w=210, h=297)
+
+    except FileNotFoundError as e:
+        print(f"Image file not found: {photo_path}")
+        continue
+
+# Save the certificates as a single PDF file
+pdf_output_path = "certificates_output.pdf"
+pdf.output(pdf_output_path)
+print(f"Certificates saved in: {pdf_output_path}")
